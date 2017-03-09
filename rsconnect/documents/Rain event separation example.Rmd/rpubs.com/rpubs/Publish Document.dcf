@@ -1,0 +1,8 @@
+name: Publish Document
+title:
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/257265/aec41dc271a24cd793bfb56d58a06121
+bundleId: https://api.rpubs.com/api/v1/document/257265/aec41dc271a24cd793bfb56d58a06121
+url: http://rpubs.com/ZyuAFD/257265
+when: 1489095625.04497
