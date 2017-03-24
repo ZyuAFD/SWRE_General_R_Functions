@@ -34,7 +34,7 @@ Precip_Evt_Sep= function(dt,IntE_P)
         mutate(Rain=ifelse(is.na(Rain),0,Rain)) %>% 
         mutate(Cum_Precip_4hr_L=roll_sum(Rain,IntE_P+1,align='left',fill=0)-Rain,
                Cum_Precip_4hr_R=roll_sum(Rain,IntE_P+1,align='right',fill=0)-Rain) %>% 
-        mutate(St=ifelse(Cum_Precip_4hr_R<=0 & Rain>0,1,0),
+        mutate(St=ifelse(Cum_Precip_4hr_R==0 & Rain>0,1,0),
                End=ifelse(Cum_Precip_4hr_L==0 & Rain>0,1,0)) %>% 
         mutate(Evt_lab=St+End) %>% 
         mutate(Evt_lab=cumsum(Evt_lab)) %>% 
