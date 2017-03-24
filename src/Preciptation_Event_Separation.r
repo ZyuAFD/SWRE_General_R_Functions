@@ -12,6 +12,8 @@ Precip_Evt_Sep= function(dt,IntE_P)
   #The header of time and rain should be
   # Time    Rain
   
+    dt %<>% arrange(Time)
+    
     # print out the gaps with NA Rain
     print('Here are all the gaps with NA rain.')
     dt %>% 
@@ -30,7 +32,6 @@ Precip_Evt_Sep= function(dt,IntE_P)
     
     #generate rain events
     dt %>% 
-        arrange(Time) %>% 
         mutate(Rain=ifelse(is.na(Rain),0,Rain)) %>% 
         mutate(Cum_Precip_4hr_L=roll_sum(Rain,IntE_P+1,align='left',fill=0)-Rain,
                Cum_Precip_4hr_R=roll_sum(Rain,IntE_P+1,align='right',fill=0)-Rain) %>% 
