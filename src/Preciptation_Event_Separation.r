@@ -33,14 +33,15 @@ Precip_Evt_Sep= function(dt,T_intv,IntE_P)
     
     #generate rain events
     dt %>% 
-    {
-        dt=.
-        data.frame(
-            Time=c(min(dt$Time)-minutes(interval*IntE_P),
-                    max(dt$Time)+minutes(interval*IntE_P))
-        ) %>% 
-            bind_rows(dt)
-    } %>% 
+        {
+            dt=.
+            data.frame(
+                Time=c(min(dt$Time)-minutes(interval*IntE_P),
+                        max(dt$Time)+minutes(interval*IntE_P))
+            ) %>% 
+                bind_rows(dt)
+        } %>% 
+        Regular_Time(T_intv) %>% 
         mutate(Rain=ifelse(is.na(Rain),0,Rain)) %>% 
         mutate(Cum_Precip_4hr_L=roll_sum(Rain,IntE_P+1,align='left',fill=0)-Rain,
                Cum_Precip_4hr_R=roll_sum(Rain,IntE_P+1,align='right',fill=0)-Rain) %>% 
