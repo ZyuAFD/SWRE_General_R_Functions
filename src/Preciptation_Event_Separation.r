@@ -1,8 +1,9 @@
 
 #Precip Evt Separation function for 5 min interval
 
-Precip_Evt_Sep= function(dt,IntE_P)
+Precip_Evt_Sep= function(dt,T_intv,IntE_P)
     #dt:       data of time and rain
+    #T_intv:   Time interval of the time series
     #IntE_P:   Inter event period 
     #           (time step based your time interval
     #            For example: in a 5 min time interval series
@@ -20,8 +21,8 @@ Precip_Evt_Sep= function(dt,IntE_P)
         filter(is.na(Rain)) %>% 
         arrange(Time) %>% 
         mutate(lag=as.numeric(Time-lag(Time),units='mins')) %>% 
-        mutate(Gap_St=ifelse(lag>5 | is.na(lag),'Start','NA')) %>% 
-        mutate(Gap_End=ifelse(lead(lag)>5 | is.na(lead(lag)),'End','NA')) %>% 
+        mutate(Gap_St=ifelse(lag>T_intv | is.na(lag),'Start','NA')) %>% 
+        mutate(Gap_End=ifelse(lead(lag)>T_intv | is.na(lead(lag)),'End','NA')) %>% 
         mutate(Gap_Lab=(Gap_St=='Start')+(Gap_End=='End')) %>% 
         mutate(Gap_n=(cumsum(Gap_Lab)+1) %/% 2) %>% 
         group_by(Gap_n) %>% 
@@ -32,6 +33,14 @@ Precip_Evt_Sep= function(dt,IntE_P)
     
     #generate rain events
     dt %>% 
+    {
+        dt=.
+        data.frame(
+            Time=c(min(dt$Time)-minutes(interval*IntE_P),
+                    max(dt$Time)+minutes(interval*IntE_P))
+        ) %>% 
+            bind_rows(dt)
+    } %>% 
         mutate(Rain=ifelse(is.na(Rain),0,Rain)) %>% 
         mutate(Cum_Precip_4hr_L=roll_sum(Rain,IntE_P+1,align='left',fill=0)-Rain,
                Cum_Precip_4hr_R=roll_sum(Rain,IntE_P+1,align='right',fill=0)-Rain) %>% 
