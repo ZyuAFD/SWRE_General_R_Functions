@@ -3,12 +3,15 @@
 
 Precip_Evt_Sep= function(dt,T_intv,IntE_P)
     #dt:       data of time and rain
-    #T_intv:   Time interval of the time series
+    #T_intv:   Time interval of the time series (mins)
     #IntE_P:   Inter event period 
     #           (time step based your time interval
     #            For example: in a 5 min time interval series
     #            a 4 hour inter event period is corresponding to
     #            48 for IntE_P)
+    # output: 
+    #   Odd Evt_lab: Rain event
+    #   Even Evt_lab: Dry event
 {
   #The header of time and rain should be
   # Time    Rain
@@ -32,26 +35,21 @@ Precip_Evt_Sep= function(dt,T_intv,IntE_P)
         print
     
     #generate rain events
-    dt %>% 
-        {
-            dt=.
-            data.frame(
-                Time=c(min(dt$Time)-minutes(interval*IntE_P),
-                        max(dt$Time)+minutes(interval*IntE_P))
-            ) %>% 
-                bind_rows(dt)
-        } %>% 
+
+    data.frame(
+        Time=c(min(dt$Time)-minutes(T_intv),
+                max(dt$Time)+minutes(T_intv))
+        ) %>% 
+        bind_rows(dt) %>% 
         Regular_Time(T_intv) %>% 
-        mutate(Rain=ifelse(is.na(Rain),0,Rain)) %>% 
-        mutate(Cum_Precip_4hr_L=roll_sum(Rain,IntE_P+1,align='left',fill=0)-Rain,
-               Cum_Precip_4hr_R=roll_sum(Rain,IntE_P+1,align='right',fill=0)-Rain) %>% 
-        mutate(St=ifelse(Cum_Precip_4hr_R<=0 & Rain>0,1,0),
-               End=ifelse(Cum_Precip_4hr_L==0 & Rain>0,1,0)) %>% 
-        mutate(Evt_lab=St+End) %>% 
+        replace_na(list(Rain=0)) %>% 
+        mutate(Cum_Precip_4hr_L=roll_sum(Rain,IntE_P+1,align='left',fill=0),
+               Cum_Precip_4hr_R=roll_sum(Rain,IntE_P+1,align='right',fill=0)) %>% 
+        mutate(St_wet=ifelse(lag(Cum_Precip_4hr_R)==0 & Rain>0,1,0),
+               St_dry=ifelse(lag(Cum_Precip_4hr_L)>0 & Cum_Precip_4hr_L==0 & Rain==0,1,0)) %>% 
+        replace_na(list(St_wet=0,St_dry=0)) %>% 
+        mutate(Evt_lab=St_wet+St_dry) %>% 
         mutate(Evt_lab=cumsum(Evt_lab)) %>% 
-        mutate(Evt_lab=ifelse(Evt_lab %% 2==0 & lag(Evt_lab)<Evt_lab,Evt_lab-1,Evt_lab)) %>% 
-        mutate(Evt_lab=ifelse(Evt_lab %% 2==0,0,(Evt_lab+1) %/% 2)) %>%
         select(Time,Rain,Evt_lab) %>% 
-        mutate(Evt_lab=ifelse(is.na(Evt_lab),0,Evt_lab)) %>% 
         return
 }
