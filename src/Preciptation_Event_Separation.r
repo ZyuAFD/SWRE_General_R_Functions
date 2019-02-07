@@ -1,5 +1,5 @@
 
-#Precip Evt Separation function for 5 min interval
+#Precip Evt Separation function 
 
 Precip_Evt_Sep= function(dt,T_intv,IntE_P)
     #dt:       data of time and rain
